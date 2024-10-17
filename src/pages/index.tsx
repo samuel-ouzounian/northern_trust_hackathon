@@ -97,9 +97,9 @@ const Dashboard: React.FC = () => {
             <TabsContent value="all">
               <Card x-chunk="dashboard-06-chunk-0">
                 <CardHeader>
-                  <CardTitle>Products</CardTitle>
+                  <CardTitle>Currency</CardTitle>
                   <CardDescription>
-                    Manage your products and view their sales performance.
+                    Manage currency exchange rates.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
