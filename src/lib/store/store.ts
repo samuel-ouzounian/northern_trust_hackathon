@@ -1,9 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
 import counterReducer from "./apps/counterSlice";
+import exchangeReducer from "./apps/conversionSlice";
 
 export const makeStore = () => {
   return configureStore({
-    reducer: { counter: counterReducer },
+    reducer: { counter: counterReducer, exchange: exchangeReducer },
   });
 };
 
