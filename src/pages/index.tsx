@@ -154,7 +154,7 @@ const Dashboard: React.FC = () => {
             {targetKey}
           </td>
           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            {conversionRates[targetKey]}
+            {conversionRates[targetKey].toFixed(2)}
           </td>
         </tr>
       );
@@ -177,7 +177,7 @@ const Dashboard: React.FC = () => {
               {currency}
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {rate}
+              {rate.toFixed(2)}
             </td>
           </tr>
         );
@@ -202,8 +202,14 @@ const Dashboard: React.FC = () => {
                   <CardDescription>Currency exchange rates</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex gap-4 mb-4">
+                  <div className="flex flex-row w-[65%]">
                     <div className="w-1/2">
+                      <label
+                        htmlFor="from-currency"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        From
+                      </label>
                       <CurrencyCombobox
                         value={baseKey}
                         setValue={handleBaseKeyChange}
@@ -212,6 +218,12 @@ const Dashboard: React.FC = () => {
                       />
                     </div>
                     <div className="w-1/2">
+                      <label
+                        htmlFor="to-currency"
+                        className="block text-sm font-medium text-gray-700 mb-1"
+                      >
+                        To
+                      </label>
                       <CurrencyCombobox
                         value={targetKey}
                         setValue={setTargetKey}
