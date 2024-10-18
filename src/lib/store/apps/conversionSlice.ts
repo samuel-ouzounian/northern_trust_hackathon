@@ -1,36 +1,38 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+interface ForexData {
+  date: string;
+  close: number;
+}
+
 interface ExchangeState {
-  display: boolean;
-  exchangeRate: number;
+  baseRate: number;
   amountToInvest: number;
   amountToReceive: number;
   fromSymbol: string;
   toSymbol: string;
   exchangeDate: string;
-  conversionFees: number;
+  conversionFee: number;
+  forexData: ForexData[];
 }
 
 const initialState: ExchangeState = {
-  display: false,
-  exchangeRate: 5,
-  amountToInvest: 0,
-  amountToReceive: 0,
-  fromSymbol: "",
-  toSymbol: "",
-  exchangeDate: "",
-  conversionFees: 0,
+  baseRate: 0.91916,
+  amountToInvest: 100,
+  amountToReceive: 91.9164,
+  fromSymbol: "USD",
+  toSymbol: "EUR",
+  exchangeDate: "10/17/2024",
+  conversionFee: 5,
+  forexData: [],
 };
 
 const exchangeSlice = createSlice({
   name: "exchange",
   initialState,
   reducers: {
-    setDisplay: (state, action: PayloadAction<boolean>) => {
-      state.display = action.payload;
-    },
-    setExchangeRate: (state, action: PayloadAction<number>) => {
-      state.exchangeRate = action.payload;
+    setBaseRate: (state, action: PayloadAction<number>) => {
+      state.baseRate = action.payload;
     },
     setAmountToReceive: (state, action: PayloadAction<number>) => {
       state.amountToReceive = action.payload;
@@ -48,20 +50,23 @@ const exchangeSlice = createSlice({
     setExchangeDate: (state, action: PayloadAction<string>) => {
       state.exchangeDate = action.payload;
     },
-    setConversionFees: (state, action: PayloadAction<number>) => {
-      state.conversionFees = action.payload;
+    setConversionFee: (state, action: PayloadAction<number>) => {
+      state.conversionFee = action.payload;
+    },
+    setForexData: (state, action: PayloadAction<ForexData[]>) => {
+      state.forexData = action.payload;
     },
   },
 });
 
 export const {
-  setDisplay,
-  setExchangeRate,
+  setBaseRate,
   setAmountToInvest,
   setAmountToReceive,
   setSymbols,
   setExchangeDate,
-  setConversionFees,
+  setConversionFee,
+  setForexData,
 } = exchangeSlice.actions;
 
 export default exchangeSlice.reducer;

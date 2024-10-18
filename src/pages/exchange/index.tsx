@@ -1,190 +1,188 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Line } from "react-chartjs-2";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDispatch } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  setDisplay,
-  setExchangeRate,
   setAmountToInvest,
   setAmountToReceive,
   setSymbols,
   setExchangeDate,
-  setConversionFees,
+  setForexData,
+  setBaseRate,
 } from "@/lib/store/apps/conversionSlice";
 import { useAppSelector } from "@/lib/store/hooks";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import ForexApiAdapter from "@/lib/adapters/forexApiAdapter";
 
 const ExchangePage = () => {
   const dispatch = useDispatch();
-  const exchange = useAppSelector((state: any) => state.exchange);
-  const [timeFrame, setTimeFrame] = useState("1W");
-  const [historicalRates, setHistoricalRates] = useState([]);
+  const {
+    baseRate,
+    amountToInvest,
+    amountToReceive,
+    fromSymbol,
+    toSymbol,
+    exchangeDate,
+    conversionFee,
+    forexData,
+  } = useAppSelector((state) => state.exchange);
+  const [graphInterval, setGraphInterval] = useState<
+    "DAILY" | "MONTHLY" | "YEARLY"
+  >("DAILY");
+
+  const fetchForexData = useCallback(
+    async (interval, fromSymbolParam, toSymbolParam) => {
+      const apiAdapter = new ForexApiAdapter("13b83b39301485f447565dda");
+      try {
+        // const forexData = await apiAdapter.getForexData(
+        //   interval,
+        //   fromSymbolParam,
+        //   toSymbolParam
+        // );
+        // dispatch(setForexData(forexData as any));
+        // if (forexData.length > 0) {
+        //   dispatch(setBaseRate(forexData[forexData.length - 1].rate));
+        // }
+      } catch (error) {
+        console.error("Error fetching forex data:", error);
+      }
+    },
+    [dispatch]
+  );
 
   useEffect(() => {
-    // Fetch historical rates based on timeFrame
-    fetchHistoricalRates(timeFrame);
-  }, [timeFrame]);
+    // if (effectRan.current === false) {
+    if (fromSymbol && toSymbol) {
+      fetchForexData(graphInterval, fromSymbol, toSymbol);
+    }
+    // effectRan.current = true;
+  }, [graphInterval]);
 
-  const fetchHistoricalRates = async (period: any) => {
-    // Implement API call to fetch historical rates
-    // For this example, we'll use mock data
-    const mockData = [
-      { date: "2023-10-10", rate: 1.05 },
-      { date: "2023-10-11", rate: 1.06 },
-      { date: "2023-10-12", rate: 1.07 },
-      { date: "2023-10-13", rate: 1.08 },
-      { date: "2023-10-14", rate: 1.09 },
-    ];
-    // setHistoricalRates(mockData);
-  };
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
 
-  const handleAmountToInvestChange = (e) => {
-    const amount = parseFloat(e.target.value);
+    // Remove leading zeros and convert to number
+    const amount = inputValue
+      ? parseFloat(inputValue.replace(/^0+/, "")) || 0
+      : 0;
+
     dispatch(setAmountToInvest(amount));
-    dispatch(setAmountToReceive(amount * exchange.exchangeRate));
+    dispatch(setAmountToReceive(amount * baseRate));
   };
 
-  const handleExchangeRateChange = (e) => {
-    const rate = parseFloat(e.target.value);
-    dispatch(setExchangeRate(rate));
-    dispatch(setAmountToReceive(exchange.amountToInvest * rate));
-  };
-
-  const handleSymbolChange = (from, to) => {
-    dispatch(setSymbols({ from, to }));
-  };
-
-  const chartData = {
-    labels: historicalRates.map((item) => item.date),
-    datasets: [
-      {
-        label: "Exchange Rate",
-        data: historicalRates.map((item) => item.rate),
-        fill: false,
-        borderColor: "rgb(75, 192, 192)",
-        tension: 0.1,
-      },
-    ],
+  const handleIntervalChange = (interval: "DAILY" | "MONTHLY" | "YEARLY") => {
+    setGraphInterval(interval);
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Currency Exchange</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Exchange Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="amountToInvest">Amount to Invest</Label>
-                <Input
-                  id="amountToInvest"
-                  type="number"
-                  value={exchange.amountToInvest}
-                  onChange={handleAmountToInvestChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="exchangeRate">Exchange Rate</Label>
-                <Input
-                  id="exchangeRate"
-                  type="number"
-                  value={exchange.exchangeRate}
-                  onChange={handleExchangeRateChange}
-                  readOnly={true}
-                />
-              </div>
-              <div>
-                <Label htmlFor="amountToReceive">Amount to Receive</Label>
-                <Input
-                  id="amountToReceive"
-                  type="number"
-                  value={exchange.amountToReceive}
-                  readOnly
-                />
-              </div>
-              <div className="flex space-x-4">
-                <div>
-                  <Label htmlFor="fromSymbol">From</Label>
-                  <Select
-                    onValueChange={(value) =>
-                      handleSymbolChange(value, exchange.toSymbol)
-                    }
-                    defaultValue={exchange.fromSymbol}
-                  >
-                    <SelectTrigger id="fromSymbol">
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="toSymbol">To</Label>
-                  <Select
-                    onValueChange={(value) =>
-                      handleSymbolChange(exchange.fromSymbol, value)
-                    }
-                    defaultValue={exchange.toSymbol}
-                  >
-                    <SelectTrigger id="toSymbol">
-                      <SelectValue placeholder="Select currency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* <Card>
-          <CardHeader>
-            <CardTitle>Historical Exchange Rates</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="mb-4">
-              <Label htmlFor="timeFrame">Time Frame</Label>
-              <Select onValueChange={setTimeFrame} defaultValue={timeFrame}>
-                <SelectTrigger id="timeFrame">
-                  <SelectValue placeholder="Select time frame" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1W">1 Week</SelectItem>
-                  <SelectItem value="1M">1 Month</SelectItem>
-                  <SelectItem value="3M">3 Months</SelectItem>
-                  <SelectItem value="1Y">1 Year</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="h-64">
+    <div className="flex w-[100vw] h-screen max-h-[800px] flex-row justify-between p-20 ">
+      <Card className="w-3/5 mr-4">
+        <CardHeader>
+          <CardTitle>
+            {fromSymbol} / {toSymbol}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold mb-2">{baseRate.toFixed(2)}</div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={forexData}>
+              <XAxis dataKey="date" padding={{ left: 30, right: 30 }} />{" "}
+              <YAxis
+                domain={["auto", "auto"]}
+                padding={{ top: 20, bottom: 20 }}
+              />{" "}
+              <Tooltip />
               <Line
-                data={chartData}
-                options={{ responsive: true, maintainAspectRatio: false }}
+                type="monotone"
+                dataKey="rate"
+                stroke="#8884d8"
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+          <div className="mt-4 ">
+            <select
+              className="w-32 p-2 border rounded-md"
+              onChange={(e) =>
+                handleIntervalChange(
+                  e.target.value as "DAILY" | "MONTHLY" | "YEARLY"
+                )
+              }
+            >
+              <option value="DAILY">Daily</option>
+              <option value="MONTHLY">Monthly</option>
+              <option value="YEARLY">Yearly</option>
+            </select>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="w-2/5">
+        <CardHeader>
+          <CardTitle>Currency Converter</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="amount">Amount</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={amountToInvest.toString()}
+                onChange={handleAmountChange}
               />
             </div>
-          </CardContent>
-        </Card> */}
-      </div>
+            <div className="flex flex-row">
+              <div className="w-1/2">
+                <Label htmlFor="fromCurrency">From</Label>
+                <div className="select-label font-bold" id="fromCurrency">
+                  {fromSymbol || "Select currency"}
+                </div>
+              </div>
+              <div className="w-1/2">
+                <Label htmlFor="toCurrency">To</Label>
+                <div className="select-label font-bold" id="toCurrency">
+                  {toSymbol || "Select currency"}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label>Exchange Rate</Label>
+              <p className="text-lg font-semibold">
+                1 {fromSymbol} = {baseRate} {toSymbol}
+              </p>
+            </div>
+            <div>
+              <Label>Conversion Fee</Label>
+              <p>
+                {conversionFee} {fromSymbol}
+              </p>
+            </div>
+            <div>
+              <Label>You'll receive</Label>
+              <p className="text-xl font-bold">
+                {amountToReceive.toFixed(2)} {toSymbol}
+              </p>
+            </div>
+            <div>
+              <Label>Exchange Date</Label>
+              <p>{exchangeDate}</p>
+            </div>
+
+            <Button className="w-full">Convert</Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
