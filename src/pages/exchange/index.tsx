@@ -11,6 +11,7 @@ import {
   setExchangeDate,
   setForexData,
   setBaseRate,
+  setConversionFee,
 } from "@/lib/store/apps/conversionSlice";
 import { useAppSelector } from "@/lib/store/hooks";
 import {
@@ -22,6 +23,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import ForexApiAdapter from "@/lib/adapters/forexApiAdapter";
+import { Separator } from "@/components/ui/separator";
 
 const ExchangePage = () => {
   const dispatch = useDispatch();
@@ -38,20 +40,22 @@ const ExchangePage = () => {
   const [graphInterval, setGraphInterval] = useState<
     "DAILY" | "MONTHLY" | "YEARLY"
   >("DAILY");
+  const apiAdapter = new ForexApiAdapter("13b83b39301485f447565dda");
+  const [usdRate, setUsdRate] = useState(0);
+  const [usdFee, setUsdFee] = useState(0);
 
   const fetchForexData = useCallback(
-    async (interval, fromSymbolParam, toSymbolParam) => {
-      const apiAdapter = new ForexApiAdapter("13b83b39301485f447565dda");
+    async (interval, fromSymbolParam, toSymbolParam, apiAdapter) => {
       try {
-        // const forexData = await apiAdapter.getForexData(
-        //   interval,
-        //   fromSymbolParam,
-        //   toSymbolParam
-        // );
-        // dispatch(setForexData(forexData as any));
-        // if (forexData.length > 0) {
-        //   dispatch(setBaseRate(forexData[forexData.length - 1].rate));
-        // }
+        const forexData = await apiAdapter.getForexData(
+          interval,
+          fromSymbolParam,
+          toSymbolParam
+        );
+        dispatch(setForexData(forexData as any));
+        if (forexData.length > 0) {
+          dispatch(setBaseRate(forexData[forexData.length - 1].rate));
+        }
       } catch (error) {
         console.error("Error fetching forex data:", error);
       }
@@ -60,11 +64,15 @@ const ExchangePage = () => {
   );
 
   useEffect(() => {
-    // if (effectRan.current === false) {
+    apiAdapter.getConversionRateToUSD(fromSymbol).then((e) => {
+      setUsdRate(e);
+    });
+  }, [fromSymbol]);
+
+  useEffect(() => {
     if (fromSymbol && toSymbol) {
-      fetchForexData(graphInterval, fromSymbol, toSymbol);
+      fetchForexData(graphInterval, fromSymbol, toSymbol, apiAdapter);
     }
-    // effectRan.current = true;
   }, [graphInterval]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +82,26 @@ const ExchangePage = () => {
     const amount = inputValue
       ? parseFloat(inputValue.replace(/^0+/, "")) || 0
       : 0;
-
+    let conversionFee: number;
+    switch (true) {
+      case amount < 100000:
+        conversionFee = 0.03;
+        break;
+      case amount > 100000 && amount < 500000:
+        conversionFee = 0.02;
+        break;
+      case amount > 500000:
+        conversionFee = 0.01;
+        break;
+      default:
+        conversionFee = 0.03;
+        break;
+    }
+    const usdAmount = amount * usdRate;
+    console.log(usdAmount);
+    const usdFee = usdAmount * conversionFee;
+    setUsdFee(usdFee);
+    dispatch(setConversionFee(amount * conversionFee));
     dispatch(setAmountToInvest(amount));
     dispatch(setAmountToReceive(amount * baseRate));
   };
@@ -92,7 +119,7 @@ const ExchangePage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold mb-2">{baseRate.toFixed(2)}</div>
+          <div className="text-3xl font-bold mb-2">{baseRate.toFixed(3)}</div>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={forexData}>
               <XAxis dataKey="date" padding={{ left: 30, right: 30 }} />{" "}
@@ -164,14 +191,18 @@ const ExchangePage = () => {
             </div>
             <div>
               <Label>Conversion Fee</Label>
-              <p>
-                {conversionFee} {fromSymbol}
-              </p>
+              <div className="flex flex-row gap-2">
+                <p>{usdFee.toFixed(2)} USD</p>
+                <Separator orientation="vertical" />
+                <p>
+                  {conversionFee} {fromSymbol}
+                </p>
+              </div>
             </div>
             <div>
               <Label>You'll receive</Label>
               <p className="text-xl font-bold">
-                {amountToReceive.toFixed(2)} {toSymbol}
+                {(amountToReceive - conversionFee).toFixed(2)} {toSymbol}
               </p>
             </div>
             <div>

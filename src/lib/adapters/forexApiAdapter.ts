@@ -105,6 +105,20 @@ class ForexApiAdapter {
       interval
     );
   }
+  public async getConversionRateToUSD(fromSymbol: string): Promise<number> {
+    try {
+      const response = await this.fetchData(fromSymbol, "USD", new Date());
+
+      if (response.result === "success") {
+        return response.conversion_rates["USD"];
+      } else {
+        throw new Error("Failed to fetch conversion rate");
+      }
+    } catch (error) {
+      console.error("Error getting conversion rate:", error);
+      throw error;
+    }
+  }
 }
 
 export default ForexApiAdapter;

@@ -17,13 +17,13 @@ interface ExchangeState {
 }
 
 const initialState: ExchangeState = {
-  baseRate: 0.91916,
-  amountToInvest: 100,
-  amountToReceive: 91.9164,
-  fromSymbol: "USD",
-  toSymbol: "EUR",
+  baseRate: 0,
+  amountToInvest: 0,
+  amountToReceive: 0,
+  fromSymbol: "EUR",
+  toSymbol: "USD",
   exchangeDate: "10/17/2024",
-  conversionFee: 5,
+  conversionFee: 0,
   forexData: [],
 };
 
@@ -51,6 +51,7 @@ const exchangeSlice = createSlice({
       state.exchangeDate = action.payload;
     },
     setConversionFee: (state, action: PayloadAction<number>) => {
+      console.log("test");
       state.conversionFee = action.payload;
     },
     setForexData: (state, action: PayloadAction<ForexData[]>) => {
