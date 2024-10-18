@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface ForexData {
   date: string;
-  close: number;
+  rate: number;
 }
 
 interface ExchangeState {
@@ -11,9 +11,10 @@ interface ExchangeState {
   amountToReceive: number;
   fromSymbol: string;
   toSymbol: string;
-  exchangeDate: string;
   conversionFee: number;
-  forexData: ForexData[];
+  dailyForexData: ForexData[];
+  monthlyForexData: ForexData[];
+  yearlyForexData: ForexData[];
 }
 
 const initialState: ExchangeState = {
@@ -21,10 +22,11 @@ const initialState: ExchangeState = {
   amountToInvest: 0,
   amountToReceive: 0,
   fromSymbol: "EUR",
-  toSymbol: "USD",
-  exchangeDate: "10/17/2024",
+  toSymbol: "JPY",
   conversionFee: 0,
-  forexData: [],
+  dailyForexData: [],
+  monthlyForexData: [],
+  yearlyForexData: [],
 };
 
 const exchangeSlice = createSlice({
@@ -47,15 +49,17 @@ const exchangeSlice = createSlice({
       state.fromSymbol = action.payload.from;
       state.toSymbol = action.payload.to;
     },
-    setExchangeDate: (state, action: PayloadAction<string>) => {
-      state.exchangeDate = action.payload;
-    },
     setConversionFee: (state, action: PayloadAction<number>) => {
-      console.log("test");
       state.conversionFee = action.payload;
     },
-    setForexData: (state, action: PayloadAction<ForexData[]>) => {
-      state.forexData = action.payload;
+    setDailyForexData: (state, action: PayloadAction<ForexData[]>) => {
+      state.dailyForexData = action.payload;
+    },
+    setMonthlyForexData: (state, action: PayloadAction<ForexData[]>) => {
+      state.monthlyForexData = action.payload;
+    },
+    setYearlyForexData: (state, action: PayloadAction<ForexData[]>) => {
+      state.yearlyForexData = action.payload;
     },
   },
 });
@@ -65,9 +69,10 @@ export const {
   setAmountToInvest,
   setAmountToReceive,
   setSymbols,
-  setExchangeDate,
   setConversionFee,
-  setForexData,
+  setDailyForexData,
+  setMonthlyForexData,
+  setYearlyForexData,
 } = exchangeSlice.actions;
 
 export default exchangeSlice.reducer;

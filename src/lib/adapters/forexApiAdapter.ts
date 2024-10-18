@@ -44,18 +44,24 @@ class ForexApiAdapter {
     toSymbol: string,
     startDate: Date,
     endDate: Date,
-    interval: "DAILY" | "MONTHLY" | "YEARLY"
-  ): Promise<ForexData[]> {
-    const data: ForexData[] = [];
+    interval: "DAILY" | "MONTHLY" | "YEARLY",
+    onDataFetched: (data: ForexData[]) => void // New callback function
+  ): Promise<void> {
     let currentDate = new Date(startDate);
+
+    const data: ForexData[] = [];
 
     while (currentDate <= endDate) {
       const response = await this.fetchData(fromSymbol, toSymbol, currentDate);
       if (response.result === "success") {
-        data.push({
+        const newData = {
           date: currentDate.toISOString().split("T")[0],
           rate: response.conversion_rates[toSymbol],
-        });
+        };
+
+        data.push(newData);
+        const updatedData = [...data, newData];
+        onDataFetched(updatedData);
       }
 
       switch (interval) {
@@ -70,15 +76,14 @@ class ForexApiAdapter {
           break;
       }
     }
-
-    return data;
   }
 
   public async getForexData(
     interval: "DAILY" | "MONTHLY" | "YEARLY",
     fromSymbol: string,
-    toSymbol: string
-  ): Promise<ForexData[]> {
+    toSymbol: string,
+    onDataFetched: (data: ForexData[]) => void
+  ): Promise<void> {
     const endDate = new Date();
     let startDate: Date;
 
@@ -97,14 +102,16 @@ class ForexApiAdapter {
         break;
     }
 
-    return this.fetchDataForRange(
+    await this.fetchDataForRange(
       fromSymbol,
       toSymbol,
       startDate,
       endDate,
-      interval
+      interval,
+      onDataFetched
     );
   }
+
   public async getConversionRateToUSD(fromSymbol: string): Promise<number> {
     try {
       const response = await this.fetchData(fromSymbol, "USD", new Date());
@@ -116,6 +123,24 @@ class ForexApiAdapter {
       }
     } catch (error) {
       console.error("Error getting conversion rate:", error);
+      throw error;
+    }
+  }
+  public async getLatestExchangeRate(
+    fromSymbol: string,
+    toSymbol: string
+  ): Promise<number> {
+    try {
+      const url = `${this.baseUrl}/${this.apiKey}/latest/${fromSymbol}`;
+      const response = await axios.get<ApiResponse>(url);
+
+      if (response.data.result === "success") {
+        return response.data.conversion_rates[toSymbol];
+      } else {
+        throw new Error("Failed to fetch the latest exchange rate");
+      }
+    } catch (error) {
+      console.error("Error fetching the latest exchange rate:", error);
       throw error;
     }
   }
