@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
+import { Currency, Search } from "lucide-react"
 import {
   Card,
   CardContent,
@@ -30,23 +30,25 @@ export const description =
   "A products dashboard with a sidebar navigation. The sidebar has icon navigation. The content area has a breadcrumb and search in the header. It displays a list of products in a table with actions.";
 
 const Dashboard: React.FC = () => {
+
+  const [apiKey, setApiKey] = useState('USD');
+  const [targetKey, setTargetKey] = useState('USD');
+
   const [conversionRates, setConversionRates] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
     const fetchConversionRates = async () => {
       try {
-        const response = await fetch('https://v6.exchangerate-api.com/v6/13b83b39301485f447565dda/latest/USD');
+        const response = await fetch(`https://v6.exchangerate-api.com/v6/13b83b39301485f447565dda/latest/${apiKey}/${targetKey}`);
         const data = await response.json();
         setConversionRates(data.conversion_rates);
       } catch (error) {
         console.error('Error fetching conversion rates:', error);
       }
     };
-  
-    {/* Object.keys(data.conversion_rates).map(key => ({ key, rate: data.conversion_rates[key] })) */ }
 
     fetchConversionRates();
-  }, []);
+  }, [apiKey, targetKey]);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -71,22 +73,32 @@ const Dashboard: React.FC = () => {
                       
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          <Input placeholder='From' />
+                          <Input 
+                          placeholder='From' 
+                          onChange={(e) => setApiKey(e.target.value)} 
+                          />
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          <Input placeholder='To' />
+                          <Input 
+                          placeholder='To' 
+                          onChange={(e) => setTargetKey(e.target.value)} 
+                          />
                         </th>
                       </tr>
-             
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {/* Object.keys(data.conversion_rates).map(key => ({ key, rate: data.conversion_rates[key] })) */}
-                      {Object.entries(conversionRates).map(([currency, rate]) => (
-                        <tr key={currency}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{currency}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{rate}</td>
-                        </tr>
-                      ))}
+                        {Object.entries(conversionRates).map(([currency, rate]) => {
+                          const target = targetKey; // Replace 'USD' with the desired target currency
+                          return (
+                          <tr key={currency}>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{currency}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{target}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{rate}</td>
+                          </tr>
+                          );
+                        })}
+                      
                     </tbody>
                   </Table>
                 </CardContent>
@@ -97,6 +109,6 @@ const Dashboard: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
 export default Dashboard;
