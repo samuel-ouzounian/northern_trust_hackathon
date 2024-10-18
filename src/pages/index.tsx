@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useState } from "react";
 import {
   Card,
@@ -121,7 +119,6 @@ const Dashboard: React.FC = () => {
   }, [baseKey]);
 
   useEffect(() => {
-    // Reset targetKey if it's the same as the new baseKey
     if (targetKey === baseKey) {
       setTargetKey("");
     }
@@ -143,7 +140,6 @@ const Dashboard: React.FC = () => {
   const renderTableRows = () => {
     const rows: JSX.Element[] = [];
 
-    // Add the target key row at the top
     if (targetKey && conversionRates[targetKey]) {
       rows.push(
         <tr key={targetKey} className="cursor-pointer" onClick={handleRowClick}>
@@ -160,7 +156,6 @@ const Dashboard: React.FC = () => {
       );
     }
 
-    // Add the rest of the rows, excluding the base key and target key
     Object.entries(conversionRates).forEach(([currency, rate]) => {
       if (currency !== baseKey && currency !== targetKey) {
         rows.push(
@@ -169,7 +164,6 @@ const Dashboard: React.FC = () => {
             className="cursor-pointer"
             onClick={handleRowClick}
           >
-            {" "}
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
               {baseKey}
             </td>
@@ -233,24 +227,26 @@ const Dashboard: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <Table className="min-w-full divide-y divide-gray-200">
-                    <thead>
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Base Currency
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Target Currency
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Exchange Rate
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {renderTableRows()}
-                    </tbody>
-                  </Table>
+                  <div style={{ height: "80%" }}>
+                    <Table className="min-w-full divide-y divide-gray-200">
+                      <thead>
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Base Currency
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Target Currency
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Exchange Rate
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {renderTableRows()}
+                      </tbody>
+                    </Table>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
