@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import {
   setAmountToInvest,
   setAmountToReceive,
-  setSymbols,
   setBaseRate,
   setConversionFee,
   setDailyForexData,
@@ -26,9 +25,13 @@ import {
 import ForexApiAdapter from "@/lib/adapters/forexApiAdapter";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/router";
+import { userHistory } from "@/utils/history";
+import axios from "axios";
 
 const ExchangePage = () => {
   const router = useRouter(); // Initialize the router
+
+  const [info, setInfo] = useState<null | string[]>(null);
 
   const dispatch = useDispatch();
   const {
@@ -42,7 +45,10 @@ const ExchangePage = () => {
   const [graphInterval, setGraphInterval] = useState<
     "DAILY" | "MONTHLY" | "YEARLY"
   >("DAILY");
-  const apiAdapter = new ForexApiAdapter("13b83b39301485f447565dda");
+  const apiAdapter = useMemo(
+    () => new ForexApiAdapter("13b83b39301485f447565dda"),
+    []
+  );
   const [usdRate, setUsdRate] = useState(0);
   const [usdFee, setUsdFee] = useState(0);
   const exchangeDate = new Date();
@@ -99,7 +105,7 @@ const ExchangePage = () => {
     };
 
     fetchAllForexData();
-  }, [fromSymbol, toSymbol, dispatch]);
+  }, [fromSymbol, toSymbol, dispatch, apiAdapter]);
 
   useEffect(() => {
     const fetchBaseRate = async () => {
@@ -117,13 +123,47 @@ const ExchangePage = () => {
     };
 
     fetchBaseRate();
-  }, [fromSymbol, toSymbol, dispatch]);
+  }, [fromSymbol, toSymbol, dispatch, apiAdapter]);
+
+  useEffect(() => {
+    const getInfo = async () => {
+      const data = await axios.post(
+        "http://localhost:10000/pipeline/evaluate",
+        {
+          base: fromSymbol,
+          target: toSymbol,
+          tradeHistory: userHistory.getHistory({
+            from: fromSymbol,
+            to: toSymbol,
+          }),
+        }
+      );
+
+      if (data && data.data) setInfo(data.data.message);
+    };
+
+    if (toSymbol && fromSymbol) getInfo();
+  }, [toSymbol, fromSymbol]);
+
+  const handleConvertClick = () => {
+    userHistory.setHistory({
+      base: toSymbol,
+      target: fromSymbol,
+      amount: amountToInvest,
+      convertedAmount: amountToReceive,
+      exchangeRate: baseRate,
+    });
+
+    dispatch(setAmountToInvest(0));
+    dispatch(setAmountToReceive(0));
+    dispatch(setConversionFee(0));
+  };
 
   useEffect(() => {
     apiAdapter.getConversionRateToUSD(fromSymbol).then((e) => {
       setUsdRate(e);
     });
-  }, [fromSymbol]);
+  }, [fromSymbol, apiAdapter]);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -169,7 +209,7 @@ const ExchangePage = () => {
   };
 
   return (
-    <div className="flex w-[100vw] h-screen max-h-[800px] flex-col justify-center p-20 ">
+    <div className="flex flex-col justify-center p-20 ">
       <Button className="w-28 mb-6" onClick={handleBackClick}>
         {"< Back"}
       </Button>{" "}
@@ -263,7 +303,7 @@ const ExchangePage = () => {
                 </div>
               </div>
               <div>
-                <Label>You'll receive</Label>
+                <Label>{"You'll receive"}</Label>
                 <p className="text-xl font-bold">
                   {(amountToReceive - conversionFee).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
@@ -277,11 +317,22 @@ const ExchangePage = () => {
                 <p>{exchangeDate.toLocaleDateString()}</p>
               </div>
 
-              <Button className="w-full">Convert</Button>
+              <Button className="w-full" onClick={handleConvertClick}>
+                Convert
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
+      {info !== null && (
+        <Card className="py-8 my-4">
+          <CardContent className="text-gray-200 flex gap-4 flex-col">
+            {info.map((i) => (
+              <p key={i}>{i}</p>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

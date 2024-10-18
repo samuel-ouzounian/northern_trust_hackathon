@@ -47,7 +47,7 @@ class ForexApiAdapter {
     interval: "DAILY" | "MONTHLY" | "YEARLY",
     onDataFetched: (data: ForexData[]) => void // New callback function
   ): Promise<void> {
-    let currentDate = new Date(startDate);
+    const currentDate = new Date(startDate);
 
     const data: ForexData[] = [];
 
