@@ -227,7 +227,11 @@ const Dashboard: React.FC = () => {
                       />
                     </div>
                   </div>
-                  <div style={{ height: "80%" }}>
+                  <div
+                    className="table-container"
+                    style={{ height: "65vh", overflowY: "auto" }}
+                  >
+                    {" "}
                     <Table className="min-w-full divide-y divide-gray-200">
                       <thead>
                         <tr>
