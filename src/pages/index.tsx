@@ -244,24 +244,25 @@ const Dashboard: React.FC = () => {
                       />
                     </div>
                   </div>
-
-                  <Table className="min-w-full divide-y">
-                    <thead>
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
-                          Base Currency
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
-                          Target Currency
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
-                          Exchange Rate
-                        </th>
-                      </tr>
-                    </thead>
-
-                    <TableBody>{renderTableRows()}</TableBody>
-                  </Table>
+                  <div className="max-h-[65vh] overflow-y-auto">
+                    <Table className="min-w-full divide-y">
+                      <thead>
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                            Base Currency
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                            Target Currency
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
+                            Exchange Rate
+                          </th>
+                        </tr>
+                      </thead>
+        
+                      <TableBody>{renderTableRows()}</TableBody>
+                    </Table>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
