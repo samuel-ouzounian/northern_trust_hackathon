@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/router";
 import { userHistory } from "@/utils/history";
 import axios from "axios";
+import { Activity } from "lucide-react";
 
 const ExchangePage = () => {
   const router = useRouter(); // Initialize the router
@@ -325,13 +326,15 @@ const ExchangePage = () => {
         </Card>
       </div>
       {info !== null && (
-        <Card className="py-8 my-4">
-          <CardContent className="text-gray-200 flex gap-4 flex-col">
-            {info.map((i) => (
-              <p key={i}>{i}</p>
-            ))}
-          </CardContent>
-        </Card>
+        <div className="flex border flex-col p-8 gap-4 text-gray-300 rounded-3xl">
+          <div className="border rounded-2xl p-4 py-3 mb-4 bg-slate-900 flex gap-4 text-gray-400">
+            <Activity />
+            AI Insights
+          </div>
+          {info.map((d: string) => (
+            <p key={d}>{d}</p>
+          ))}
+        </div>
       )}
     </div>
   );
