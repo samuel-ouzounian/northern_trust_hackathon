@@ -32,6 +32,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useRouter } from "next/router";
+import { useAppDispatch } from "@/lib/store/hooks";
+import { setSymbols } from "@/lib/store/apps/conversionSlice";
 
 interface CurrencyComboboxProps {
   value: string;
@@ -108,6 +110,7 @@ const Dashboard: React.FC = () => {
   const [targetKey, setTargetKey] = useState<string>("EUR");
   const [conversionRates, setConversionRates] = useState<ConversionRates>({});
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const fetchConversionRates = async () => {
@@ -140,7 +143,8 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleRowClick = () => {
+  const handleRowClick = (baseKey: string, targetKey: string) => {
+    dispatch(setSymbols({ from: baseKey, to: targetKey }));
     router.push("/exchange");
   };
 
@@ -153,7 +157,7 @@ const Dashboard: React.FC = () => {
           <TableRow
             key={targetKey}
             className="cursor-pointer"
-            onClick={handleRowClick}
+            onClick={() => handleRowClick(baseKey, targetKey)}
           >
             <td className="px-6 py-4 whitespace-nowrap text-sm ">{baseKey}</td>
             <td className="px-6 py-4 whitespace-nowrap text-sm ">
@@ -174,7 +178,7 @@ const Dashboard: React.FC = () => {
             <TableRow
               key={currency}
               className="cursor-pointer"
-              onClick={handleRowClick}
+              onClick={() => handleRowClick(baseKey, currency)}
             >
               <td className="px-6 py-4 whitespace-nowrap text-sm ">
                 {baseKey}
